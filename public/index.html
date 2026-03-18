@@ -314,19 +314,28 @@
 
     #edit-view.visible { display: flex; }
 
-    #editor {
+    #editor-wrap {
       flex: 1;
+      overflow-y: auto;
+      padding: 48px 64px;
+    }
+
+    #editor {
+      display: block;
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      min-height: 400px;
       resize: none;
       border: none;
       outline: none;
-      padding: 48px 64px;
+      padding: 0;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.75;
       color: var(--text);
       background: var(--bg);
       tab-size: 2;
-      max-width: 100%;
     }
 
     #editor-footer {
@@ -452,7 +461,9 @@
     </div>
     <div id="rendered-view"><div class="md-content" id="rendered-content"></div></div>
     <div id="edit-view">
-      <textarea id="editor" spellcheck="false" placeholder="Start writing…"></textarea>
+      <div id="editor-wrap">
+        <textarea id="editor" spellcheck="false" placeholder="Start writing…"></textarea>
+      </div>
       <div id="editor-footer">
         <span id="word-count">0 words</span>
         <button id="save-btn" disabled onclick="saveFile()">Save</button>
@@ -781,6 +792,20 @@ document.getElementById('modal-input').addEventListener('keydown', (e) => {
 
 document.getElementById('modal-overlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+// ── Global shortcuts ──
+document.addEventListener('keydown', (e) => {
+  // Alt+A — toggle rendered/edit mode
+  if (e.altKey && !e.ctrlKey && !e.metaKey && e.key === 'a') {
+    e.preventDefault();
+    setMode(mode === 'rendered' ? 'edit' : 'rendered');
+  }
+  // Ctrl+S / Cmd+S — save (works from any mode)
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveFile();
+  }
 });
 
 // ── Init ──
