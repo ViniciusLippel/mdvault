@@ -747,22 +747,20 @@ document.getElementById('ctx-delete').addEventListener('click', async () => {
 
 // ── Create ──
 function promptCreate(type) {
-  const inFolder = currentFolder ? ` in ${currentFolder}` : '';
+  const prefix = currentFolder ? currentFolder + '/' : '';
   if (type === 'file') {
-    openModal(`New note${inFolder}`, '', async (name) => {
-      if (!name) return;
-      const filePath = currentFolder ? `${currentFolder}/${name}` : name;
-      const res = await api('POST', '/api/file', { path: filePath });
+    openModal('New note', prefix, async (inputPath) => {
+      if (!inputPath) return;
+      const res = await api('POST', '/api/file', { path: inputPath });
       if (res.error) { alert(res.error); return; }
       await loadTree();
       openFile(res.path);
       setMode('edit');
     });
   } else {
-    openModal(`New folder${inFolder}`, '', async (name) => {
-      if (!name) return;
-      const folderPath = currentFolder ? `${currentFolder}/${name}` : name;
-      const res = await api('POST', '/api/folder', { path: folderPath });
+    openModal('New folder', prefix, async (inputPath) => {
+      if (!inputPath) return;
+      const res = await api('POST', '/api/folder', { path: inputPath });
       if (res.error) { alert(res.error); return; }
       loadTree();
     });
@@ -778,7 +776,7 @@ function openModal(title, defaultValue, onConfirm) {
   setTimeout(() => {
     const input = document.getElementById('modal-input');
     input.focus();
-    input.select();
+    input.setSelectionRange(input.value.length, input.value.length);
   }, 50);
 }
 
