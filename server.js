@@ -78,7 +78,7 @@ app.put('/api/file', (req, res) => {
 
   try {
     fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, content ?? '', 'utf8');
+    fs.writeFileSync(abs, content !== undefined ? content : '', 'utf8');
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
