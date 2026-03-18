@@ -495,6 +495,7 @@
 <script>
 // ── State ──
 let currentFile = null;  // vault-relative path e.g. "folder/note.md"
+let currentFolder = '';  // current folder context for new files/folders
 let mode = 'rendered';
 let dirty = false;
 let modalAction = null;
@@ -542,6 +543,7 @@ function createNode(node, depth) {
     label.addEventListener('click', () => {
       label.classList.toggle('open');
       children.classList.toggle('open');
+      currentFolder = node.path;
     });
 
     label.addEventListener('contextmenu', (e) => {
@@ -550,7 +552,7 @@ function createNode(node, depth) {
     });
 
     for (const child of node.children) {
-      children.appendChild(createNode(child, 0));
+      children.appendChild(createNode(child, depth + 1));
     }
 
     el.appendChild(label);
@@ -584,6 +586,7 @@ async function openFile(filePath) {
   if (dirty && !confirm('Discard unsaved changes?')) return;
 
   currentFile = filePath;
+  currentFolder = filePath.includes('/') ? filePath.split('/').slice(0, -1).join('/') : '';
   dirty = false;
 
   const data = await api('GET', `/api/file?path=${encodeURIComponent(filePath)}`);
@@ -744,19 +747,22 @@ document.getElementById('ctx-delete').addEventListener('click', async () => {
 
 // ── Create ──
 function promptCreate(type) {
+  const inFolder = currentFolder ? ` in ${currentFolder}` : '';
   if (type === 'file') {
-    openModal('New note', '', async (name) => {
+    openModal(`New note${inFolder}`, '', async (name) => {
       if (!name) return;
-      const res = await api('POST', '/api/file', { path: name });
+      const filePath = currentFolder ? `${currentFolder}/${name}` : name;
+      const res = await api('POST', '/api/file', { path: filePath });
       if (res.error) { alert(res.error); return; }
       await loadTree();
       openFile(res.path);
       setMode('edit');
     });
   } else {
-    openModal('New folder', '', async (name) => {
+    openModal(`New folder${inFolder}`, '', async (name) => {
       if (!name) return;
-      const res = await api('POST', '/api/folder', { path: name });
+      const folderPath = currentFolder ? `${currentFolder}/${name}` : name;
+      const res = await api('POST', '/api/folder', { path: folderPath });
       if (res.error) { alert(res.error); return; }
       loadTree();
     });
